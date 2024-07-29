@@ -56,6 +56,8 @@ services:
         "--datadir=/tmp/mysqldata-slave2",
         "--server-id=3"
       ]   
+    networks:
+      - external-database
       
 volumes:
   mysql-master:
