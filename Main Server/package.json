@@ -1,0 +1,25 @@
+{
+  "name": "main-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon run index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "express": "^4.19.2",
+    "kafkajs": "^2.2.4",
+    "minio": "^8.0.1",
+    "mysql2": "^3.10.3",
+    "sequelize": "^6.37.3",
+    "sequelize-auto": "^0.8.8",
+    "sequelize-cli": "^6.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

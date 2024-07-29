@@ -1,0 +1,44 @@
+{
+  "replication": {
+    "write": {
+      "username": "writes",
+      "password": "0000",
+      "database": "Social-Media",
+      "host": "master",
+      "dialect": "mysql",
+      "port": 3306
+    },
+    "read": [
+      {
+        "username": "root",
+        "password": "0000",
+        "database": "Social-Media",
+        "host": "localhost",
+        "dialect": "slave1",
+        "port": 3306
+      },
+      {
+        "username": "root",
+        "password": "0000",
+        "database": "Social-Media",
+        "host": "localhost",
+        "dialect": "slave2",
+        "port": 3306
+      }
+    ]
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}

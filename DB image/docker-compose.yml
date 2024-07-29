@@ -1,0 +1,69 @@
+version: '3.8'
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - mysql-master:/var/lib/mysql
+    command:
+      [
+        "mysqld",
+        "--datadir=/tmp/mysqldata-master",
+        "--server-id=1"
+      ]
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: '0000'
+      MYSQL_DATABASE: 'Social-Media'
+    networks:
+      - external-database
+
+  slave1:
+    build:
+      context: .
+      dockerfile: Slave_Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: '0000'
+    volumes:
+      - mysql-slave1:/var/lib/mysql
+    ports:
+      - "3309:3306"
+    command:
+      [
+        "mysqld",
+        "--datadir=/tmp/mysqldata-slave1",
+        "--server-id=2"
+      ]
+    networks:
+      - external-database
+
+  slave2:
+    build:
+      context: .
+      dockerfile: Slave_Dockerfile
+    
+    environment:
+      MYSQL_ROOT_PASSWORD: '0000'
+    volumes:
+      - mysql-slave2:/var/lib/mysql
+    ports:
+      - "3310:3306"
+    command:
+      [
+        "mysqld",
+        "--datadir=/tmp/mysqldata-slave2",
+        "--server-id=3"
+      ]   
+      
+volumes:
+  mysql-master:
+  mysql-slave1:
+  mysql-slave2:
+  mysql-slave3:
+
+networks:
+  external-database:
+    external: false
+    name: external-database

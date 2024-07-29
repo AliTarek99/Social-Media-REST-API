@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  main-server1:
+    container_name: main_server1
+    build: .
+    ports:
+      - "5555:5555"
+    environment:
+      - PORT=5555
+      - KAFKA_CLIENT_ID=Main_server1
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+    networks:
+      - event-streaming
+      - encoding-buffer
+      - load-balancing
+      - external-database
+
+  main-server2:
+    container_name: main_server2
+    build: .
+    ports:
+      - "6666:6666"
+    environment:
+      - PORT=6666
+      - KAFKA_CLIENT_ID=Main_server2
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+    networks:
+      - event-streaming
+      - encoding-buffer
+      - load-balancing
+      - external-database
+      
+networks:
+  event-streaming:
+    external: false
+    name: event-streaming
+  encoding-buffer:
+    name: encoding-buffer
+    external: false
+  load-balancing:
+    name: load-balancing
+    external: false
+  external-database:
+    name: external-database
+    external: false

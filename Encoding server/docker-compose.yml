@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  encoding-server1:
+    container_name: encoding-server1
+    build: .
+    environment:
+      - PORT=4444
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+    networks:
+      - event-streaming
+      - encoding-buffer
+      - external-database
+
+  encoding-server2:
+    container_name: encoding-server2
+    build: .
+    environment:
+      - PORT=3333
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
+    networks:
+      - event-streaming
+      - encoding-buffer
+      - external-database
+      
+networks:
+  event-streaming:
+    external: false
+    name: event-streaming
+  encoding-buffer:
+    name: encoding-buffer
+    external: false
+  external-database:
+    name: external-database
+    external: false

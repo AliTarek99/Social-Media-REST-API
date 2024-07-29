@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  encoding-buffer:
+    image: quay.io/minio/minio
+    container_name: encoding-buffer
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: My_ID
+      MINIO_ROOT_PASSWORD: secret_key
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - encoding-buffer
+
+  object-store:
+    image: quay.io/minio/minio
+    container_name: object-store
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    environment:
+      MINIO_ROOT_USER: My_ID
+      MINIO_ROOT_PASSWORD: secret_key
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - object-store
+
+volumes:
+  minio-data:
+    driver: local
+
+networks:
+  encoding-buffer:
+    name: encoding-buffer
+    external: false
+  object-store:
+    name: object-store
+    external: false
