@@ -1,28 +1,17 @@
-var DataTypes = require("sequelize").DataTypes;
-var _Comments = require("./Comments");
-var _Follwers = require("./Follwers");
-var _Likes = require("./Likes");
-var _Messages = require("./Messages");
-var _Notifications = require("./Notifications");
-var _Posts = require("./Posts");
-var _Reports = require("./Reports");
-var _Saved_Posts = require("./Saved_Posts");
-var _Support = require("./Support");
-var _User_metadata = require("./User_metadata");
-var _Users = require("./Users");
+const sequilize = require("sequelize");
+const Comments = require("./Comments");
+const Follwers = require("./Follwers");
+const Likes = require("./Likes");
+const Messages = require("./Messages");
+const Notifications = require("./Notifications");
+const Posts = require("./Posts");
+const Reports = require("./Reports");
+const Saved_Posts = require("./Saved_Posts");
+const Support = require("./Support");
+const User_metadata = require("./User_metadata");
+const Users = require("./Users");
 
-function initModels(sequelize) {
-  var Comments = _Comments(sequelize, DataTypes);
-  var Follwers = _Follwers(sequelize, DataTypes);
-  var Likes = _Likes(sequelize, DataTypes);
-  var Messages = _Messages(sequelize, DataTypes);
-  var Notifications = _Notifications(sequelize, DataTypes);
-  var Posts = _Posts(sequelize, DataTypes);
-  var Reports = _Reports(sequelize, DataTypes);
-  var Saved_Posts = _Saved_Posts(sequelize, DataTypes);
-  var Support = _Support(sequelize, DataTypes);
-  var User_metadata = _User_metadata(sequelize, DataTypes);
-  var Users = _Users(sequelize, DataTypes);
+function initModels() {
 
   Posts.belongsToMany(Users, { as: 'userId_Users_Likes', through: Likes, foreignKey: "postId", otherKey: "userId" });
   Posts.belongsToMany(Users, { as: 'userId_Users_Saved_Posts', through: Saved_Posts, foreignKey: "postId", otherKey: "userId" });
@@ -68,20 +57,6 @@ function initModels(sequelize) {
   Users.hasMany(Saved_Posts, { as: "Saved_Posts", foreignKey: "userId" });
   User_metadata.belongsTo(Users, { as: "id_User", foreignKey: "id" });
   Users.hasOne(User_metadata, { as: "User_metadatum", foreignKey: "id" });
-
-  return {
-    Comments,
-    Follwers,
-    Likes,
-    Messages,
-    Notifications,
-    Posts,
-    Reports,
-    Saved_Posts,
-    Support,
-    User_metadata,
-    Users,
-  };
 }
 module.exports = initModels;
 module.exports.initModels = initModels;

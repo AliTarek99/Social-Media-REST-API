@@ -1,72 +1,71 @@
-const Sequelize = require('sequelize');
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('Notifications', {
-    id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true
-    },
-    recipientId: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-      primaryKey: true,
-      references: {
-        model: 'Users',
-        key: 'id'
-      }
-    },
-    activity_type: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    object_type: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    timestamp: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    senderId: {
-      type: DataTypes.BIGINT,
-      allowNull: true,
-      references: {
-        model: 'Users',
-        key: 'id'
-      }
-    },
-    not_read: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      primaryKey: true
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
+const sequelize = require('sequelize');
+const DataTypes = require('sequelize').DataTypes;
+module.exports = sequelize.define('Notifications', {
+  id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true
+  },
+  recipientId: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+    primaryKey: true,
+    references: {
+      model: 'Users',
+      key: 'id'
     }
-  }, {
-    sequelize,
-    tableName: 'Notifications',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "recipientId" },
-          { name: "not_read" },
-          { name: "id" },
-        ]
-      },
-      {
-        name: "notifications_senderid_foreign",
-        using: "BTREE",
-        fields: [
-          { name: "senderId" },
-        ]
-      },
-    ]
-  });
-};
+  },
+  activity_type: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  object_type: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  timestamp: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+  },
+  senderId: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  not_read: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    primaryKey: true
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  }
+}, {
+  sequelize,
+  tableName: 'Notifications',
+  timestamps: false,
+  indexes: [
+    {
+      name: "PRIMARY",
+      unique: true,
+      using: "BTREE",
+      fields: [
+        { name: "recipientId" },
+        { name: "not_read" },
+        { name: "id" },
+      ]
+    },
+    {
+      name: "notifications_senderid_foreign",
+      using: "BTREE",
+      fields: [
+        { name: "senderId" },
+      ]
+    },
+  ]
+});
