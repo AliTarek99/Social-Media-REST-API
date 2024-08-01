@@ -1,6 +1,6 @@
 const Minio = require('minio');
 
-const minio = new Minio.Client({
+exports.buffer = new Minio.Client({
     endPoint: 'encoding-buffer',
     port: 9000,
     useSSL: false,
@@ -8,9 +8,10 @@ const minio = new Minio.Client({
     secretKey: "secret_key"
 });
 
-exports.client = minio;
-
-exports.errorHandler = err => {
-    if(err) return console.log(err);
-    console.log('bucket created successfully');
-}
+exports.objStore = new Minio.Client({
+    endPoint: 'object-store',
+    port: 9000,
+    useSSL: false,
+    accessKey: "My_ID",
+    secretKey: "secret_key"
+});

@@ -1,4 +1,4 @@
-const sequelize = require('sequelize');
+const sequelize = require('../util/db_helper').getdb();
 const DataTypes = require("sequelize").DataTypes;
 module.exports = sequelize.define('User_metadata', {
   id: {

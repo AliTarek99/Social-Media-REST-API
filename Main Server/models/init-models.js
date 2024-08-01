@@ -1,4 +1,4 @@
-const sequilize = require("sequelize");
+const sequelize = require('../util/db_helper').getdb();
 const Comments = require("./Comments");
 const Follwers = require("./Follwers");
 const Likes = require("./Likes");

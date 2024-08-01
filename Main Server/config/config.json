@@ -1,7 +1,7 @@
 {
   "replication": {
     "write": {
-      "username": "writes",
+      "username": "root",
       "password": "0000",
       "database": "Social-Media",
       "host": "master",

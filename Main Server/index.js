@@ -12,6 +12,6 @@ server.use('/posts', postsRouter);
 server.listen(process.env.PORT, async () => {
     const db = getdb();
     initModels(db);
-    // await obj.initBuckets(['posts']);
+    await obj.initBuckets(['media']);
     await producer.connect();
 });
