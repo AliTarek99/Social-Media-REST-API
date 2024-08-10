@@ -1,7 +1,7 @@
 const minio = require('./util/object_store');
 const { consumer } = require('./util/kafka_helper');
-const busboy = require('busboy');
 const ffmpeg = require('fluent-ffmpeg');
+const fs = require('fs/promises');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 const ffprobeInstaller = require('@ffprobe-installer/ffprobe');
 const { PassThrough } = require('stream');
@@ -11,8 +11,12 @@ ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 async function init() {
-    await consumer.connect();
-    await consumer.subscribe({ topics: ['PostWrites'], fromBeginning: true });
+    try {
+        await consumer.connect();
+        await consumer.subscribe({ topics: ['PostWrites'], fromBeginning: true });
+    } catch (err) {
+        console.log('error initializing: ', err);
+    }
 }
 
 async function main() {
@@ -28,30 +32,36 @@ async function main() {
             // parse message content
             message.value = JSON.parse(message.value.toString());
             // split name and file
-            let objectname = message.value.media, ext = `.${message.value.media.split('.').pop()}`, tasks = [];
-            objectname = objectname.slice(0, objectname.length - ext.length);
+            let objectname = message.value.media, ext = `.${message.value.media.split('.').pop()}`, HD = false, SD = false;
+            objectname = objectname ? objectname.slice(0, objectname.length - ext.length) : undefined;
             console.log(objectname);
             try {
-            // check if there is media in this post
+                // check if there is media in this post
                 if (objectname) {
+                    SD = true;
                     // get the content from the buffer server
                     let dataStream = await minio.buffer.getObject('media', message.value.media);
                     if (message.value.mediaType == 'video') {
+                        await fs.writeFile(`./tmp/${objectname + ext}`, dataStream);
                         // get the resolution of the video
-                        const metadata = await getVideoMetadata(dataStream);
-                        tasks = resolutions
+                        const metadata = await getVideoMetadata(await getObjectStream(message.value.media));
+                        let tasks = resolutions
                             .filter(res => metadata.width > res.width || metadata.height > res.height)
                             .map(async res => {
                                 return encodeStream(res, objectname, ext);
                             });
-                        console.log(tasks.length);
-                        // wait for the encoding and downscaling if any is being done
-                        await Promise.all(tasks).catch(err => console.log(err));
 
-                        if (!tasks.length) {
-                            // getting new stream
-                            await encodeStream(metadata, objectname, ext);
+                        if (tasks.length <= 1) {
+                            tasks.push(encodeStream(metadata, objectname, ext));
                         }
+                        else HD = true;
+
+                        // wait for the encoding and downscaling if any is being done
+                        await Promise.all(tasks).catch(err => console.log('prom all: ', err));
+                        
+
+                        // delete video after encoding
+                        fs.rm(`./tmp/${objectname + ext}`).catch(err => console.log('del file: ', err));
                     }
                     else {
                         await minio.objStore.putObject('media', `${objectname}-SD.mp4`, dataStream, (err, etag) => { if (err) return console.log(err); });
@@ -59,14 +69,14 @@ async function main() {
 
                     console.log('Videos encoded successfully');
                 }
-                
+
                 // write to the database
                 await Posts.create({
                     creatorId: message.value.creatorId,
                     num_of_likes: 0,
                     num_of_comments: 0,
-                    media_HD: tasks.length >= 2 ? `${objectname}-HD.mp4` : null,
-                    media_SD: tasks.length ? `${objectname}-SD.mp4` : null,
+                    media_HD: HD >= 2 ? `${objectname}-HD.mp4` : null,
+                    media_SD: SD ? `${objectname}-SD.mp4` : null,
                     caption: message.value.caption
                 });
             } catch (error) {
@@ -89,29 +99,39 @@ const getVideoMetadata = (inputStream) => {
 
 const encodeStream = (resolution, objectname, ext) => {
     return new Promise(async (resolve, reject) => {
-        const inputStream = await getObjectStream(objectname + ext);
         const stream = new PassThrough();
         let videoname = `${objectname}-${resolution.height > 480 ? 'HD' : 'SD'}.mp4`;
         console.log('encoding');
         // Pipe the ffmpeg output to MinIO
         try {
-            ffmpeg()
-                .input(inputStream)
-                .size(`${resolution.width}x${resolution.height}`)
-                .videoCodec('libx265')
-                .format('mp4')
-                .pipe(stream, { end: true })
-                .on('end', () => {
-                    console.log('Encoding finished');
-                    resolve();
-                })
-                .on('error', (err) => {
-                    console.error('FFmpeg error:', err);
-                    reject(err);
-                });
 
-            // Create a writable stream for MinIO
-            await minio.objStore.putObject('media', videoname, stream).catch(err => reject(err));
+            ffmpeg(`./tmp/${objectname + ext}`)
+                .size(`${resolution.width}x${resolution.height}`)
+                .videoCodec('libvpx-vp9')
+                .outputOptions([
+                    '-crf 30', // Adjust the CRF value based on your quality needs (lower is better quality)
+                    '-g 30', // Set GOP size (keyframe interval)
+                    '-b:v 0',
+                ])
+                .outputFormat('webm')
+                .on('progress', (p) => {
+                    // console.log('Progress:', p);
+                })
+                .on('error', (err, stdout, stderr) => {
+                    console.error('FFmpeg error:', err, stdout, stderr);
+                    stream.end();
+                    reject(err);
+                })
+                .on('end', () => {
+                    console.log('Processing finished successfully');
+                    resolve()
+                })
+                .pipe(stream, { end: true })
+
+            await minio.objStore.putObject('media', videoname, stream).catch(err => {
+                console.error('Error putting object to MinIO:', err);
+                reject(err);
+            });
         } catch (err) {
             reject(err);
         }

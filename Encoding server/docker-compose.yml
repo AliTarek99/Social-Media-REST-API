@@ -14,6 +14,7 @@ services:
       - event-streaming
       - encoding-buffer
       - external-database
+      - object-store
 
   encoding-server2:
     container_name: encoding-server2
@@ -28,6 +29,7 @@ services:
       - event-streaming
       - encoding-buffer
       - external-database
+      - object-store
       
 networks:
   event-streaming:
@@ -38,4 +40,7 @@ networks:
     external: false
   external-database:
     name: external-database
+    external: false
+  object-store:
+    name: object-store
     external: false
