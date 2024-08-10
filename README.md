@@ -7,7 +7,7 @@ You can view the diagram <a href="https://online.visual-paradigm.com/w/dpgzbxos/
 ## System Architecture
 This is the initial Design of the system and it may be modified.
 
-![image](https://github.com/user-attachments/assets/c74ea220-aa9a-4b16-bdfe-98dae5b246f8)
+![image](https://github.com/user-attachments/assets/f23bc1f9-2451-43e2-96a5-5aff97700887)
 
 ![image](https://github.com/user-attachments/assets/2226a6d8-cbe6-4b88-8447-46b12115367e)
 
