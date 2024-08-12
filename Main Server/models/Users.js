@@ -1,5 +1,6 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
+
 module.exports = sequelize.define('Users', {
   id: {
     autoIncrement: true,
@@ -21,23 +22,28 @@ module.exports = sequelize.define('Users', {
   },
   number_of_followers: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   verified: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   number_of_followed: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   banned: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   suspended: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   sequelize,

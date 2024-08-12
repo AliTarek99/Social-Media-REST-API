@@ -1,5 +1,6 @@
-const sequelize = require('../util/db_helper').getdb();
 const DataTypes = require('sequelize').DataTypes;
+const sequelize = require('../util/db_helper').getdb();
+
 module.exports = sequelize.define('Notifications', {
   id: {
     type: DataTypes.INTEGER,
@@ -26,7 +27,7 @@ module.exports = sequelize.define('Notifications', {
   timestamp: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
   },
   senderId: {
     type: DataTypes.BIGINT,
@@ -39,6 +40,7 @@ module.exports = sequelize.define('Notifications', {
   not_read: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
+    defaultValue: 1,
     primaryKey: true
   },
   description: {

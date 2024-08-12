@@ -1,6 +1,7 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
-module.exports = sequelize.define('Follwers', {
+
+module.exports = sequelize.define('Followers', {
   userId: {
     type: DataTypes.BIGINT,
     allowNull: false,
@@ -18,10 +19,18 @@ module.exports = sequelize.define('Follwers', {
       model: 'Users',
       key: 'id'
     }
+  },
+  last_message: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Messages',
+      key: 'id'
+    }
   }
 }, {
   sequelize,
-  tableName: 'Follwers',
+  tableName: 'Followers',
   timestamps: false,
   indexes: [
     {
@@ -34,10 +43,17 @@ module.exports = sequelize.define('Follwers', {
       ]
     },
     {
-      name: "follwers_userid_index",
+      name: "followers_userid_index",
       using: "BTREE",
       fields: [
         { name: "userId" },
+      ]
+    },
+    {
+      name: "followers_last_message_foreign",
+      using: "BTREE",
+      fields: [
+        { name: "last_message" },
       ]
     },
   ]

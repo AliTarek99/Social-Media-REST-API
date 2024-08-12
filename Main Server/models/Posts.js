@@ -1,5 +1,6 @@
-const sequelize = require('../util/db_helper').getdb();
 const DataTypes = require('sequelize').DataTypes;
+const sequelize = require('../util/db_helper').getdb();
+
 module.exports = sequelize.define('Posts', {
   id: {
     autoIncrement: true,
@@ -11,8 +12,12 @@ module.exports = sequelize.define('Posts', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  media: {
-    type: DataTypes.STRING(36),
+  media_HD: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  media_SD: {
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   repostedId: {
@@ -35,15 +40,17 @@ module.exports = sequelize.define('Posts', {
   post_date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
   },
   num_of_likes: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   num_of_comments: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   sequelize,

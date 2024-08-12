@@ -1,5 +1,6 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
+
 module.exports = sequelize.define('Comments', {
   id: {
     type: DataTypes.INTEGER,
@@ -33,7 +34,8 @@ module.exports = sequelize.define('Comments', {
   },
   num_of_children: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   type_of_parent: {
     type: DataTypes.STRING(8),

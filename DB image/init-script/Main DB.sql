@@ -5,7 +5,7 @@ CREATE TABLE Notifications(
     object_type TEXT NOT NULL,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     senderId BIGINT NULL,
-    not_read BOOLEAN NOT NULL,
+    not_read BOOLEAN NOT NULL DEFAULT TRUE,
     description TEXT NULL
 );
 ALTER TABLE
@@ -14,12 +14,13 @@ ALTER TABLE
 CREATE TABLE Posts(
     id BIGINT AUTO_INCREMENT UNIQUE,
     caption TEXT NULL,
-    media VARCHAR(36) NULL,
+    media_HD VARCHAR(100) NULL,
+    media_SD VARCHAR(100) NULL,
     repostedId BIGINT NULL,
     creatorId BIGINT NOT NULL,
     post_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    num_of_likes INTEGER NOT NULL,
-    num_of_comments INTEGER NOT NULL
+    num_of_likes INTEGER NOT NULL DEFAULT 0,
+    num_of_comments INTEGER NOT NULL DEFAULT 0
 );
 ALTER TABLE
     Posts ADD PRIMARY KEY(creatorId, id);
@@ -27,21 +28,26 @@ ALTER TABLE
 CREATE INDEX posts_id_index ON
     Posts(id);
 
-CREATE TABLE Likes(
+CREATE TABLE User_post_rel(
     userId BIGINT NOT NULL,
-    postId BIGINT NOT NULL
+    postId BIGINT NOT NULL,
+    liked Boolean NOT NULL DEFAULT FALSE,
+    saved Boolean NOT NULL DEFAULT FALSE
 );
 ALTER TABLE
-    Likes ADD PRIMARY KEY(postId, userId);
+    User_post_rel ADD PRIMARY KEY(liked, postId, userId);
+
+CREATE INDEX saved_posts_index ON
+    User_post_rel(userId, postId, saved);
 
 CREATE TABLE Support(
     id INTEGER AUTO_INCREMENT UNIQUE,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(36) NOT NULL,
     name VARCHAR(36) NOT NULL,
-    num_of_reviewed_reports INTEGER NOT NULL,
-    admin BOOLEAN NOT NULL,
-    verified BOOLEAN NOT NULL
+    num_of_reviewed_reports INTEGER NOT NULL DEFAULT 0,
+    admin BOOLEAN NOT NULL DEFAULT FALSE,
+    verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX support_email_index ON
     Support(email, password);
@@ -52,11 +58,11 @@ ALTER TABLE
 CREATE TABLE Reports(
     id INTEGER AUTO_INCREMENT UNIQUE,
     UserId BIGINT NOT NULL,
-    SupportId INTEGER NOT NULL,
+    SupportId INTEGER NULL,
     Description TEXT NOT NULL,
     postId BIGINT NOT NULL,
     commentId INTEGER NULL,
-    assigned BOOLEAN NOT NULL
+    assigned BOOLEAN NOT NULL DEFAULT FALSE
 );
 ALTER TABLE
     Reports ADD PRIMARY KEY(SupportId, id);
@@ -66,14 +72,15 @@ CREATE INDEX reports_userid_postid_commentid_index ON
 CREATE INDEX reports_assigned_id_index ON
     Reports(assigned, id);
 
-CREATE TABLE Follwers(
+CREATE TABLE Followers(
     userId BIGINT NOT NULL,
-    followerId BIGINT NOT NULL
+    followerId BIGINT NOT NULL,
+    last_message INT
 );
-CREATE INDEX follwers_userid_index ON
-    Follwers(userId);
+CREATE INDEX followers_userid_index ON
+    Followers(userId);
 ALTER TABLE
-    Follwers ADD PRIMARY KEY(followerId, userId);
+    Followers ADD PRIMARY KEY(followerId, userId);
 
 CREATE TABLE Messages(
     id INTEGER NOT NULL,
@@ -81,9 +88,9 @@ CREATE TABLE Messages(
     recipientId BIGINT NOT NULL,
     text TEXT NULL,
     media VARCHAR(36) NULL,
-    is_call BOOLEAN NULL,
-    received BOOLEAN NOT NULL,
-    is_read BOOLEAN NOT NULL,
+    is_call BOOLEAN NOT NULL,
+    received BOOLEAN NOT NULL DEFAULT FALSE,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ALTER TABLE
@@ -92,13 +99,16 @@ ALTER TABLE
 CREATE INDEX messages_recipientid_received_id_index ON
     Messages(recipientId, received, id);
 
+CREATE INDEX messages_id_senderid_recipientid_index ON
+    Messages (id, senderId, recipientId);
+
 CREATE TABLE User_metadata(
     id BIGINT NOT NULL,
-    num_of_warnings SMALLINT NOT NULL,
-    num_of_notifications INTEGER NOT NULL,
+    num_of_warnings SMALLINT NOT NULL DEFAULT 0,
+    num_of_notifications INTEGER NOT NULL DEFAULT 0,
     email VARCHAR(254) NOT NULL,
     password VARCHAR(254) NULL,
-    email_verified BOOLEAN NOT NULL
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX user_metadata_email_index ON
     User_metadata(email, password);
@@ -111,14 +121,14 @@ CREATE TABLE Comments(
     postId BIGINT NOT NULL,
     text TEXT NOT NULL,
     media VARCHAR(36) NULL,
-    num_of_children INTEGER NOT NULL,
+    num_of_children INTEGER NOT NULL DEFAULT 0,
     type_of_parent VARCHAR(8) NOT NULL,
     parent INTEGER NULL
 );
 ALTER TABLE
     Comments ADD PRIMARY KEY(
         postId,
-        type_of_parent(8),
+        type_of_parent,
         parent,
         id
     );
@@ -128,24 +138,17 @@ CREATE TABLE Users(
     profile_pic VARCHAR(36) NOT NULL,
     name VARCHAR(36) NOT NULL,
     bio VARCHAR(1023) NULL,
-    number_of_followers INTEGER NOT NULL,
-    verified BOOLEAN NOT NULL,
-    number_of_followed INTEGER NOT NULL,
-    banned BOOLEAN NOT NULL,
-    suspended BOOLEAN NOT NULL
+    number_of_followers INTEGER NOT NULL DEFAULT 0,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    number_of_followed INTEGER NOT NULL DEFAULT 0,
+    banned BOOLEAN NOT NULL DEFAULT FALSE,
+    suspended BOOLEAN NOT NULL DEFAULT FALSE
 );
 ALTER TABLE
     Users ADD PRIMARY KEY(id);
 
-CREATE TABLE Saved_Posts(
-    userId BIGINT NOT NULL,
-    postId BIGINT NOT NULL
-);
 ALTER TABLE
-    Saved_Posts ADD PRIMARY KEY(userId, postId);
-
-ALTER TABLE
-    Likes ADD CONSTRAINT likes_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
+    User_post_rel ADD CONSTRAINT User_post_rel_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
     Messages ADD CONSTRAINT messages_senderid_foreign FOREIGN KEY(senderId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
@@ -155,15 +158,15 @@ ALTER TABLE
 ALTER TABLE
     Reports ADD CONSTRAINT reports_supportid_foreign FOREIGN KEY(SupportId) REFERENCES Support(id) ON DELETE CASCADE;
 ALTER TABLE
-    Follwers ADD CONSTRAINT follwers_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
+    Followers ADD CONSTRAINT followers_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
+ALTER TABLE
+    Followers ADD CONSTRAINT followers_last_message_foreign FOREIGN KEY(last_message) REFERENCES Messages(id);
 ALTER TABLE
     User_metadata ADD CONSTRAINT users_id_foreign FOREIGN KEY(id) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
-    Likes ADD CONSTRAINT likes_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
+    User_post_rel ADD CONSTRAINT User_post_rel_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
 ALTER TABLE
     Comments ADD CONSTRAINT comments_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
-ALTER TABLE
-    Saved_Posts ADD CONSTRAINT saved_posts_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
     Reports ADD CONSTRAINT reports_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
 ALTER TABLE
@@ -175,8 +178,6 @@ ALTER TABLE
 ALTER TABLE
     Posts ADD CONSTRAINT posts_repostedid_foreign FOREIGN KEY(repostedId) REFERENCES Posts(id) ON DELETE CASCADE;
 ALTER TABLE
-    Follwers ADD CONSTRAINT follwers_followerid_foreign FOREIGN KEY(followerId) REFERENCES Users(id) ON DELETE CASCADE;
+    Followers ADD CONSTRAINT followers_followerid_foreign FOREIGN KEY(followerId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
     Comments ADD CONSTRAINT comments_creatorid_foreign FOREIGN KEY(creatorId) REFERENCES Users(id) ON DELETE CASCADE;
-ALTER TABLE
-    Saved_Posts ADD CONSTRAINT saved_posts_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;

@@ -1,5 +1,6 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
+
 module.exports = sequelize.define('Reports', {
   id: {
     autoIncrement: true,
@@ -42,7 +43,8 @@ module.exports = sequelize.define('Reports', {
   },
   assigned: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   sequelize,

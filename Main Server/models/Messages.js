@@ -1,5 +1,6 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
+
 module.exports = sequelize.define('Messages', {
   id: {
     type: DataTypes.INTEGER,
@@ -34,20 +35,22 @@ module.exports = sequelize.define('Messages', {
   },
   is_call: {
     type: DataTypes.BOOLEAN,
-    allowNull: true
+    allowNull: false
   },
   received: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   is_read: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
   }
 }, {
   sequelize,
@@ -71,6 +74,15 @@ module.exports = sequelize.define('Messages', {
         { name: "recipientId" },
         { name: "received" },
         { name: "id" },
+      ]
+    },
+    {
+      name: "messages_id_senderid_recipientid_index",
+      using: "BTREE",
+      fields: [
+        { name: "id" },
+        { name: "senderId" },
+        { name: "recipientId" },
       ]
     },
   ]

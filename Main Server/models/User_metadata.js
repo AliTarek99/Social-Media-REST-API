@@ -1,5 +1,6 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
+
 module.exports = sequelize.define('User_metadata', {
   id: {
     type: DataTypes.BIGINT,
@@ -12,11 +13,13 @@ module.exports = sequelize.define('User_metadata', {
   },
   num_of_warnings: {
     type: DataTypes.SMALLINT,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   num_of_notifications: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   email: {
     type: DataTypes.STRING(254),
@@ -28,7 +31,8 @@ module.exports = sequelize.define('User_metadata', {
   },
   email_verified: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   sequelize,

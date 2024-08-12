@@ -1,6 +1,7 @@
+const DataTypes = require('sequelize').DataTypes;
 const sequelize = require('../util/db_helper').getdb();
-const DataTypes = require("sequelize").DataTypes;
-module.exports = sequelize.define('Saved_Posts', {
+
+module.exports = sequelize.define('User_post_rel', {
   userId: {
     type: DataTypes.BIGINT,
     allowNull: false,
@@ -18,10 +19,21 @@ module.exports = sequelize.define('Saved_Posts', {
       model: 'Posts',
       key: 'id'
     }
+  },
+  liked: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: 0,
+    primaryKey: true
+  },
+  saved: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: 0
   }
 }, {
   sequelize,
-  tableName: 'Saved_Posts',
+  tableName: 'User_post_rel',
   timestamps: false,
   indexes: [
     {
@@ -29,12 +41,22 @@ module.exports = sequelize.define('Saved_Posts', {
       unique: true,
       using: "BTREE",
       fields: [
-        { name: "userId" },
+        { name: "liked" },
         { name: "postId" },
+        { name: "userId" },
       ]
     },
     {
-      name: "saved_posts_postid_foreign",
+      name: "saved_posts_index",
+      using: "BTREE",
+      fields: [
+        { name: "userId" },
+        { name: "postId" },
+        { name: "saved" },
+      ]
+    },
+    {
+      name: "User_post_rel_postid_foreign",
       using: "BTREE",
       fields: [
         { name: "postId" },

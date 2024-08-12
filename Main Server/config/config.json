@@ -13,16 +13,16 @@
         "username": "root",
         "password": "0000",
         "database": "Social-Media",
-        "host": "localhost",
-        "dialect": "slave1",
+        "host": "slave1",
+        "dialect": "mysql",
         "port": 3306
       },
       {
         "username": "root",
         "password": "0000",
         "database": "Social-Media",
-        "host": "localhost",
-        "dialect": "slave2",
+        "host": "slave2",
+        "dialect": "mysql",
         "port": 3306
       }
     ]
