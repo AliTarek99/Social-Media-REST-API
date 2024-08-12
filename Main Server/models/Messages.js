@@ -1,4 +1,4 @@
-const DataTypes = require('sequelize').DataTypes;
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../util/db_helper').getdb();
 
 module.exports = sequelize.define('Messages', {
@@ -50,7 +50,7 @@ module.exports = sequelize.define('Messages', {
   date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
   }
 }, {
   sequelize,

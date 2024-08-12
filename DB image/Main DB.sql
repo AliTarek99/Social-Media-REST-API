@@ -108,10 +108,12 @@ CREATE TABLE User_metadata(
     num_of_notifications INTEGER NOT NULL DEFAULT 0,
     email VARCHAR(254) NOT NULL,
     password VARCHAR(254) NULL,
-    email_verified BOOLEAN NOT NULL DEFAULT FALSE
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verification_code INTEGER NULL,
+    reset_password_token VARCHAR(100) NULL
 );
 CREATE INDEX user_metadata_email_index ON
-    User_metadata(email, password);
+    User_metadata(email, password, email_verified);
 ALTER TABLE
     User_metadata ADD PRIMARY KEY(id);
 

@@ -83,3 +83,63 @@ exports.getMedia = (req, res, next) => {
         });
     });
 }
+
+// Function to handle the GET request for retrieving a specific post
+exports.getPost = (req, res, next) => {
+  
+}
+
+// Function to handle the GET request for retrieving the timeline
+exports.getTimeline = (req, res, next) => {
+  
+}
+
+// Function to handle the GET request for retrieving comments of a post
+exports.getComments = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for adding a comment to a post
+exports.comment = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for liking a post
+exports.like = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for saving a post
+exports.save = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for unliking a post
+exports.unlike = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for unsaving a post
+exports.unsave = (req, res, next) => {
+  
+}
+
+// Function to handle the GET request for retrieving likes of a post
+exports.getLikes = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for sharing a post
+exports.share = (req, res, next) => {
+  
+}
+
+// Function to handle the DELETE request for deleting a post
+exports.deletePost = (req, res, next) => {
+  
+}
+
+// Function to handle the POST request for reporting a post
+exports.reportPost = (req, res, next) => {
+  
+}

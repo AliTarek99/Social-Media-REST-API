@@ -1,4 +1,4 @@
-const DataTypes = require('sequelize').DataTypes;
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../util/db_helper').getdb();
 
 module.exports = sequelize.define('Posts', {
@@ -40,7 +40,7 @@ module.exports = sequelize.define('Posts', {
   post_date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
   },
   num_of_likes: {
     type: DataTypes.INTEGER,

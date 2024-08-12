@@ -33,7 +33,15 @@ module.exports = sequelize.define('User_metadata', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: 0
-  }
+  },
+  verification_code: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  reset_password_token: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
 }, {
   sequelize,
   tableName: 'User_metadata',
@@ -53,6 +61,7 @@ module.exports = sequelize.define('User_metadata', {
       fields: [
         { name: "email" },
         { name: "password" },
+        { name: "email_verified" }
       ]
     },
   ]
