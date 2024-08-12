@@ -21,73 +21,77 @@ This is the initial Design of the system and it may be modified.
 * With the updates MySQL does not have the problem of updating all secondary indexes when you make any change in a row, unlike Postgres.
 * As for the writes, both the DBMSs are close in performance.
 * MySQL index scan performance is greatly affected by the size of the nodes so I have to be careful with which columns to do indexing on.
-* Also InnoDB will be the engine used because it supports ACID complaint transactions, row level locking, and uses B+tree which is faster than LSM tree in range queries. RocksDB might have been a good candidate also but from what I know it is slower in range queries. LevelDB on the other hand did not support transactions so I do not think it will be good to use it when updating multiple tables in the same request.
+* Also InnoDB will be the engine used because it supports ACID-compliant transactions, row-level locking, and uses B+tree which is faster than LSM tree in range queries. RocksDB might have been a good candidate also but from what I know it is slower in range queries. LevelDB on the other hand did not support transactions so I do not think it will be good to use it when updating multiple tables in the same request.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/424d7dd9-fc33-4366-9a55-5a23e146ee8e)
+![Main DB](https://github.com/user-attachments/assets/a730c0b1-03b5-43e8-b0b3-41ce42d18aa7)
 
 #### Users
 * There is an index on id which is the primary index.
 * profile_pic will contain a link to the picture so that the row size does not become bigger and as a result of this, I will be able to fit more rows in the same page and hopefully get more cache hits.
 
 #### User_metadata
-* There is an index on id which is the primary index and secondary index on the email and it should include the password because it will be used in login.
+* There is an index on the `id` column which is the primary index and a secondary index on the `email` and it includes the `password` because it will be used in login.
 * This table was added to separate data that is not frequently used from the users table, this was added to the schema because MySQL does not support vertical partitioning.
-* This will make other queries faster because the content in a row is less and this leads to increased number of rows in the same page which makes caching more efficient.
+* This will make other queries faster because the content in a row is less and this leads to an increased number of rows in the same page which makes caching more efficient.
 
 #### Followers
-* Here the followerId and userId was used for primary index so it is faster to get the followed users when fetching the timeline
+* Here the `followerId` and `userId` were used for the primary index so it is faster to get the followed users when fetching the timeline
+* `userId` was used for the secondary index for retrieving the user's followers.
+* I added the `last_message` column so when I am retrieving chats for the user I know which users he has chatted with.
 
 #### Posts
-* The primary index is composite index with creatorId and post ID this is because I want the table to be clustered around the userId so it is faster when I try fetching the timeline for a user showing him the posts of people he is following.
-* I have another secondary index on id which will be used for single post get requests.
-* Post can contain text, media, or another post (reposting).
+* The primary index is a composite index on the (`creatorId`, `id`) columns this is because I want the table to be clustered around the `userId` so it is faster when trying to fetch the timeline for a user showing him the posts of people he is following.
+* I have another secondary index on `id` which will be used for single post get requests.
+* Post can contain `text`, `media`, or another post (reposting).
 
-#### Saved_Posts
-* Here (userId, postId) was used as a primary index to make the table index organized on userIds so when a user requests his saved posts it will be faster.
-
-#### Likes
-* The primary index used here was (postId, userId) to make the table index organized using the postId so that when the client requests to see users who liked the post it is faster to retrieve them.
+#### User_post_rel
+* In the initial design, I had a table for saved posts and a table for liked posts, both having 2 columns (`userId`, `postId`), which is redundant.
+* I merged both tables into this table and added 2 additional columns (`liked`, `saved`) so if the user likes and saves the post I do not have repeated rows in different tables.
+* I added a primary index on the (`liked`, `postId`, `userId`) columns this will be used in retrieving users who liked a post and will make good use of caching the page retrieved from disk because I will be using most of the rows in this page
+* There is also a secondary index on the (`userId`, `postId`, `saved`) columns to retrieve the user's saved posts.
+* There is a problem here which is having a large key for the primary index which will affect the performance of the secondary index but it is okay because retrieving the saved posts is not a common case.
+* This table could be optimized for one of the 2 cases so I chose to optimize it for retrieving the likes on a post.
 
 #### Comments
-* In this table the comment id is not unique, but the same id cannot be repeated for the same post
+* In this table the comment `id` is not unique, but the same `id` cannot be repeated for the same post
 * This decision was made because, on the scope of the whole system, there will be billions of comments but a post will not have this many comments.
-* The (postId, id) was used as a primary index so that the comments on the same post would be clustered together.
-* The parent column is used to show if the comment is a reply to another comment or just a comment on the post
-* The type_of_parent will be "post" if the comment is not a reply to another comment and the parent will be the postId, otherwise, the comment will be a reply to another so type_of_parent will be "comment" and the parent will be the comment's id which is being replied to.
+* The (`postId`, `id`) was used as a primary index so that the comments on the same post would be clustered together.
+* The `parent` column is used to show if the comment is a reply to another comment or just a comment on the post
+* The `type_of_parent` will be "post" if the comment is not a reply to another comment and the parent will be the postId, otherwise, the comment will be a reply to another so `type_of_parent` will be "comment" and the parent will be the comment's id which is being replied to.
 
 #### Messages
-* Message id is not unique because there will be more than 100 billion messages, so the primary index will be (senderId, recipientId, id) this will make the table clustered using the sender and recipient ID
-* The secondary index in the recipientId will be used to make the query of fetching messages for a certain user when he becomes online faster.
+* Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`senderId`, `recipientId`, `id`) this will make the table clustered using the sender and recipient ID
+* The secondary index on the (`recipientId`, `received`, `id`) will be used to make the query of fetching messages for a certain user when he becomes online faster.
 
 #### Support
 * This is a small table which contains the accounts of support.
-* The id was used for the primary index and there is a secondary index on the email that includes the password as well so logging in is faster.
+* The `id` was used for the primary index and there is a secondary index on the `email` that includes the `password` as well so logging in is faster.
 
 #### Reports
-* The (supportId, id) columns were used as primary index because the queries on this table will be the support fetching the reports assigned to them and by choosing these columns for the primary index this table will be organized using supportId for faster range queries of this type.
-* there is a secondary index on the id for fetching a single report details
-* if commentId is null then the report is made for the post, otherwise, the commetId is the comment reported
-* There is also a secondary index on the (userId, postId, commentId) columns so that it is used when checking if the user made a report on the same post or comment before
+* The (supportId, id) columns were used as a primary index because the queries on this table will be the support fetching the reports assigned to them and by choosing these columns for the primary index this table will be organized using supportId for faster range queries of this type.
+* there is a secondary index on the `id` column for fetching a single report details
+* if `commentId` is null then the report is made for the post, otherwise, the `commentId` is the comment reported
+* There is also a secondary index on the (`userId`, `postId`, `commentId`) columns so that it is used when checking if the user made a report on the same post or comment before
 
 #### Notifications
-* the primary index is (recipientId, not_read, id) this will arrange the table to have unread notifications clustered for the same recipient.
-* object_type identifies the object that the notfication is notifying about ("post", "comment", "warning", "report")
-* activity_type is the activity that occured on this object ("liked", "followed", "warning", "commented",  "report reviewed")
+* The primary index is (`recipientId`, `not_read`, `id`) this will arrange the table to have unread notifications clustered for the same recipient.
+* `object_type` identifies the object that the notification is notifying about ("post", "comment", "warning", "report")
+* `activity_type` is the activity that occurred on this object ("liked", "followed", "warning", "commented",  "report reviewed")
 
 ## Message Queue
-* Here I was comparing between Kafka and RabbitMQ
+* Here I was comparing Kafka and RabbitMQ
 * For my use cases, I will use the MQ to write asynchronously to my database which needs durability and high throughput
 * Another use case is the authentication server communication with other servers.
-* I know RabbitMQ maybe easier to use but it is not as durable as Kafka and durability is needed in case of database asynchronous writes
-* Kafka maybe more resource intensive but it also more scalable than RabbitMQ by adding more brokers.
+* I know RabbitMQ may be easier to use but it is not as durable as Kafka and durability is needed in case of database asynchronous writes
+* Kafka may be more resource intensive but it also more scalable than RabbitMQ by adding more brokers.
 
 ## Load Balancing
-* Here I was comparing between Nginx and apache server
+* Here I was comparing between Nginx and Apache server
 * I found that Nginx is better in many ways
-	* Light weight
+	* Lightweight
 	* higher performance and is suitable for handling many simultaneous connections efficiently 
-	* simple and easy configuration
-* Nginx offers advanced features such as rate limiting, request throttling, connection limiting, which can be crucial in mitigating DDoS attacks
+	* Simple and easy configuration
+* Nginx offers advanced features such as rate limiting, request throttling, and connection limiting, which can be crucial in mitigating DDoS attacks
 * Both of them also provide static content caching.
