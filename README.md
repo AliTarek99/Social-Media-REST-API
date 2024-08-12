@@ -25,7 +25,7 @@ This is the initial Design of the system and it may be modified.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/a730c0b1-03b5-43e8-b0b3-41ce42d18aa7)
+![Main DB](https://github.com/user-attachments/assets/4e7414da-5792-4a82-8c55-cf0327e7f48d)
 
 #### Users
 * There is an index on id which is the primary index.
@@ -64,6 +64,7 @@ This is the initial Design of the system and it may be modified.
 #### Messages
 * Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`senderId`, `recipientId`, `id`) this will make the table clustered using the sender and recipient ID
 * The secondary index on the (`recipientId`, `received`, `id`) will be used to make the query of fetching messages for a certain user when he becomes online faster.
+* Added Another secondary index on the (`id`, `senderId`, `recipientId`) columns for the `id` foreign key to work in the followers table.
 
 #### Support
 * This is a small table which contains the accounts of support.
