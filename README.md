@@ -21,11 +21,11 @@ This is the initial Design of the system and it may be modified.
 * With the updates MySQL does not have the problem of updating all secondary indexes when you make any change in a row, unlike Postgres.
 * As for the writes, both the DBMSs are close in performance.
 * MySQL index scan performance is greatly affected by the size of the nodes so I have to be careful with which columns to do indexing on.
-* Also InnoDB will be the engine used because it supports ACID-compliant transactions, row-level locking, and uses B+tree which is faster than LSM tree in range queries. RocksDB might have been a good candidate also but from what I know it is slower in range queries. LevelDB on the other hand did not support transactions so I do not think it will be good to use it when updating multiple tables in the same request.
+* Also InnoDB will be the engine used because it supports ACID-compliant transactions, row-level locking, and uses B+tree which is faster than LSM tree in range queries. RocksDB might have been a good candidate also but from what I know it is slower in range queries. LevelDB on the other hand did not support transactions so it will not be good to use it when updating multiple tables in the same request.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/f3c303d4-adc8-4d3e-81bb-0213004bdc47)
+![Main DB](https://github.com/user-attachments/assets/55ea4e02-e9bb-4280-8eb7-51c686776c7d)
 
 #### Users
 * There is an index on id which is the primary index.
@@ -38,8 +38,7 @@ This is the initial Design of the system and it may be modified.
 
 #### Followers
 * Here the `followerId` and `userId` were used for the primary index so it is faster to get the followed users when fetching the timeline
-* `userId` was used for the secondary index for retrieving the user's followers.
-* I added the `last_message` column so when I am retrieving chats for the user I know which users he has chatted with.
+* `userId` was used as the secondary index to retrieve the user's followers.
 
 #### Posts
 * The primary index is a composite index on the (`creatorId`, `id`) columns this is because I want the table to be clustered around the `userId` so it is faster when trying to fetch the timeline for a user showing him the posts of people he is following.
@@ -65,6 +64,17 @@ This is the initial Design of the system and it may be modified.
 * Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`senderId`, `recipientId`, `id`) this will make the table clustered using the sender and recipient ID
 * The secondary index on the (`recipientId`, `received`, `id`) will be used to make the query of fetching messages for a certain user when he becomes online faster.
 * Added Another secondary index on the (`id`, `senderId`, `recipientId`) columns for the `id` foreign key to work in the followers table.
+
+#### Chats
+* This table will save the chats between users and using it with the chat members table will allow me to add group chats in the future if I need to.
+* The primary key is the `id` column for single chat retrieval
+* `last_message_date` is used as a secondary index to optimize range queries when retrieving a user's chats.
+
+#### Chat_members
+* I used this table instead of adding the members directly as columns in the chats table so it is easier to add group chats later
+* Also this way it is faster to get the chat IDs to which the user is a member.
+* There is a primary index on the (`userId`, `id`) columns for retrieving the user's chats.
+* The secondary index uses (`id`, `userId`) columns for retrieving chat members.
 
 #### Support
 * This is a small table which contains the accounts of support.
