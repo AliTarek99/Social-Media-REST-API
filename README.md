@@ -61,9 +61,9 @@ This is the initial Design of the system and it may be modified.
 * The `type_of_parent` will be "post" if the comment is not a reply to another comment and the parent will be the postId, otherwise, the comment will be a reply to another so `type_of_parent` will be "comment" and the parent will be the comment's id which is being replied to.
 
 #### Messages
-* Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`senderId`, `recipientId`, `id`) this will make the table clustered using the sender and recipient ID
-* The secondary index on the (`recipientId`, `received`, `id`) will be used to make the query of fetching messages for a certain user when he becomes online faster.
-* Added Another secondary index on the (`id`, `senderId`, `recipientId`) columns for the `id` foreign key to work in the followers table.
+* Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`chatId`, `id`) this will make the table clustered using the `chatId` so chat messages will be stored in the same disk pages.
+* The secondary index on the (`chatId`, `received`) columns will be used to make the query of fetching messages for a certain user when he becomes online faster.
+* Added Another secondary index on the (`id`, `chatId`) columns for the `id` foreign key to work in the chats table.
 
 #### Chats
 * This table will save the chats between users and using it with the chat members table will allow me to add group chats in the future if I need to.
