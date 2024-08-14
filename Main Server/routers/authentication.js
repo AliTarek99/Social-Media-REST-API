@@ -18,13 +18,19 @@ router.post('/login', [
     controller.login
 );
 
+router.post('/forgot-password', [
+        check('email', 'invalid email format').isEmail()
+    ],
+    controller.forgotPassword
+);
+
 router.put('/reset-password',
     check('password').isLength({max: 30, min: 8}).withMessage('invalid password length'), 
     controller.resetPassword
 );
 
 router.post('/verify-reset-password-token',
-    check('token').isLength({ max: 50, min: 50 }).withMessage('invalid token length'), 
+    check('token').isLength({ max: 6, min: 6 }).withMessage('invalid token length'), 
     controller.verifyResetPasswordToken
 );
 

@@ -92,12 +92,87 @@ exports.register = async (req, res) => {
     res.sendStatus(201);
 };
 
-exports.resetPassword = async (req, res) => {
-    
+exports.forgotPassword = async (req, res) => {
+    let errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.sendStatus(400);
+    }
+
+    const { email } = req.body;
+
+    // check if the email exists
+    const user = await userMetadata.findOne({
+        where: {
+            email: email
+        },
+        attributes: ['id', 'email']
+    });
+
+    // create a reset password token
+    const token = crypto.randomInt(100000, 999999);
+
+    if (user) {
+        // send email to the user with the reset password token
+        // sendEmail(email, token);
+    }
+
+    res.sendStatus(200);
 };
 
 exports.verifyResetPasswordToken = async (req, res) => {
-    
+    // check if the request body is valid
+    let errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.sendStatus(400);
+    }
+
+    const { token, email } = req.body;
+
+    // check if the token exists
+    const user = await userMetadata.findOne({
+        where: {
+            email: email
+        },
+        attributes: ['id', 'reset_password_token']
+    });
+
+    if (!user || user.reset_password_token !== token) {
+        return res.sendStatus(400);
+    }
+
+    res.sendStatus(200);
+};
+
+exports.resetPassword = async (req, res) => {
+    // check if the request body is valid
+    let errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.sendStatus(400);
+    }
+
+    const { token, password, email } = req.body;
+
+    // check if the token exists
+    const user = await userMetadata.findOne({
+        where: {
+            email: email
+        },
+        attributes: ['id', 'email', 'reset_password_token', 'password']
+    });
+
+    if (!user || user.reset_password_token !== token) {
+        return res.sendStatus(400);
+    }
+
+    // hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // update user
+    user.password = hashedPassword;
+    user.reset_password_token = null;
+    await user.save();
+
+    res.sendStatus(200);
 };
 
 exports.verifyEmail = async (req, res) => {

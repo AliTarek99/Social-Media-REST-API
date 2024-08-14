@@ -25,7 +25,7 @@ This is the initial Design of the system and it may be modified.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/55ea4e02-e9bb-4280-8eb7-51c686776c7d)
+![Main DB]////modify(https://github.com/user-attachments/assets/55ea4e02-e9bb-4280-8eb7-51c686776c7d)
 
 #### Users
 * There is an index on id which is the primary index.
@@ -62,7 +62,7 @@ This is the initial Design of the system and it may be modified.
 
 #### Messages
 * Message `id` is not unique because there will be more than 100 billion messages, so the primary index will be (`chatId`, `id`) this will make the table clustered using the `chatId` so chat messages will be stored in the same disk pages.
-* The secondary index on the (`chatId`, `received`) columns will be used to make the query of fetching messages for a certain user when he becomes online faster.
+* The secondary index on the (`received`, `chatId`) columns will be used to make the query of fetching messages for a certain user when he becomes online faster, this is better than using the index as (`chatId`, `received`) because the approach I chose puts the non-received messages in the same pages in the internal nodes of the B+tree which increases the chances of hitting a cached page in the memory while traversing the tree.
 * Added Another secondary index on the (`id`, `chatId`) columns for the `id` foreign key to work in the chats table.
 
 #### Chats

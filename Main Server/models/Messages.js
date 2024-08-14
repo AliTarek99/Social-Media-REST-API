@@ -10,18 +10,17 @@ module.exports = sequelize.define('Messages', {
   senderId: {
     type: DataTypes.BIGINT,
     allowNull: false,
-    primaryKey: true,
     references: {
       model: 'Users',
       key: 'id'
     }
   },
-  recipientId: {
+  chatId: {
     type: DataTypes.BIGINT,
     allowNull: false,
     primaryKey: true,
     references: {
-      model: 'Users',
+      model: 'Chats',
       key: 'id'
     }
   },
@@ -50,7 +49,7 @@ module.exports = sequelize.define('Messages', {
   date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
   }
 }, {
   sequelize,
@@ -62,8 +61,7 @@ module.exports = sequelize.define('Messages', {
       unique: true,
       using: "BTREE",
       fields: [
-        { name: "senderId" },
-        { name: "recipientId" },
+        { name: "chatId" },
         { name: "id" },
       ]
     },
@@ -71,18 +69,23 @@ module.exports = sequelize.define('Messages', {
       name: "messages_recipientid_received_id_index",
       using: "BTREE",
       fields: [
-        { name: "recipientId" },
-        { name: "received" },
         { name: "id" },
+        { name: "chatId" },
       ]
     },
     {
       name: "messages_id_senderid_recipientid_index",
       using: "BTREE",
       fields: [
-        { name: "id" },
+        { name: "received" },
+        { name: "chatId" },
+      ]
+    },
+    {
+      name: "messages_senderid_foreign",
+      using: "BTREE",
+      fields: [
         { name: "senderId" },
-        { name: "recipientId" },
       ]
     },
   ]

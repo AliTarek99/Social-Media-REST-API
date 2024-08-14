@@ -19,14 +19,6 @@ module.exports = sequelize.define('Followers', {
       model: 'Users',
       key: 'id'
     }
-  },
-  last_message: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Messages',
-      key: 'id'
-    }
   }
 }, {
   sequelize,
@@ -49,12 +41,6 @@ module.exports = sequelize.define('Followers', {
         { name: "userId" },
       ]
     },
-    {
-      name: "followers_last_message_foreign",
-      using: "BTREE",
-      fields: [
-        { name: "last_message" },
-      ]
-    },
   ]
 });
+

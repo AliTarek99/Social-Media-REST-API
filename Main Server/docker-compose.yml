@@ -9,6 +9,7 @@ services:
     environment:
       - PORT=5555
       - KAFKA_CLIENT_ID=Main_server1
+      - JWT_SECRET=secret
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -28,6 +29,7 @@ services:
     environment:
       - PORT=6666
       - KAFKA_CLIENT_ID=Main_server2
+      - JWT_SECRET=secret
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

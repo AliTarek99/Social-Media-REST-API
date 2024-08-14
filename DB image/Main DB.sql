@@ -74,8 +74,7 @@ CREATE INDEX reports_assigned_id_index ON
 
 CREATE TABLE Followers(
     userId BIGINT NOT NULL,
-    followerId BIGINT NOT NULL,
-    last_message INT
+    followerId BIGINT NOT NULL
 );
 CREATE INDEX followers_userid_index ON
     Followers(userId);
@@ -85,7 +84,7 @@ ALTER TABLE
 CREATE TABLE Messages(
     id INTEGER NOT NULL,
     senderId BIGINT NOT NULL,
-    recipientId BIGINT NOT NULL,
+    chatId BIGINT NOT NULL,
     text TEXT NULL,
     media VARCHAR(36) NULL,
     is_call BOOLEAN NOT NULL,
@@ -94,13 +93,38 @@ CREATE TABLE Messages(
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ALTER TABLE
-    Messages ADD PRIMARY KEY(senderId, recipientId, id);
+    Messages ADD PRIMARY KEY(chatId, id);
 
 CREATE INDEX messages_recipientid_received_id_index ON
-    Messages(recipientId, received, id);
+    Messages(id, chatId);
 
 CREATE INDEX messages_id_senderid_recipientid_index ON
-    Messages (id, senderId, recipientId);
+    Messages (received, chatId);
+
+CREATE TABLE Chats(
+   id BIGINT AUTO_INCREMENT UNIQUE,
+   num_of_msgs INTEGER DEFAULT 0,
+   last_message INTEGER,
+   last_message_date TIMESTAMP 
+);
+
+ALTER TABLE
+    Chats ADD PRIMARY KEY(id);
+
+CREATE INDEX chats_last_message_date_index ON
+    Chats(last_message_date);
+
+CREATE TABLE Chat_members(
+   id BIGINT,
+   userId BIGINT
+);
+
+ALTER TABLE
+    Chat_members ADD PRIMARY KEY(userId, id);
+
+CREATE INDEX chats_members_userId_id_index ON
+    Chat_members(id, userId);
+
 
 CREATE TABLE User_metadata(
     id BIGINT NOT NULL,
@@ -162,8 +186,6 @@ ALTER TABLE
 ALTER TABLE
     Followers ADD CONSTRAINT followers_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
-    Followers ADD CONSTRAINT followers_last_message_foreign FOREIGN KEY(last_message) REFERENCES Messages(id);
-ALTER TABLE
     User_metadata ADD CONSTRAINT users_id_foreign FOREIGN KEY(id) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
     User_post_rel ADD CONSTRAINT User_post_rel_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
@@ -172,7 +194,7 @@ ALTER TABLE
 ALTER TABLE
     Reports ADD CONSTRAINT reports_postid_foreign FOREIGN KEY(postId) REFERENCES Posts(id) ON DELETE CASCADE;
 ALTER TABLE
-    Messages ADD CONSTRAINT messages_recipientid_foreign FOREIGN KEY(recipientId) REFERENCES Users(id) ON DELETE CASCADE;
+    Messages ADD CONSTRAINT messages_chatid_foreign FOREIGN KEY(chatId) REFERENCES Chats(id) ON DELETE CASCADE;
 ALTER TABLE
     Reports ADD CONSTRAINT reports_userid_foreign FOREIGN KEY(UserId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
@@ -183,3 +205,9 @@ ALTER TABLE
     Followers ADD CONSTRAINT followers_followerid_foreign FOREIGN KEY(followerId) REFERENCES Users(id) ON DELETE CASCADE;
 ALTER TABLE
     Comments ADD CONSTRAINT comments_creatorid_foreign FOREIGN KEY(creatorId) REFERENCES Users(id) ON DELETE CASCADE;
+ALTER TABLE
+    Chats ADD CONSTRAINT chats_last_message_foreign FOREIGN KEY(last_message) REFERENCES Messages(id);
+ALTER TABLE
+    Chat_members ADD CONSTRAINT chat_members_id_foreign FOREIGN KEY(id) REFERENCES Chats(id) ON DELETE CASCADE;
+ALTER TABLE
+    Chat_members ADD CONSTRAINT chat_members_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;
