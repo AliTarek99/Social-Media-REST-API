@@ -25,7 +25,7 @@ This is the initial Design of the system and it may be modified.
   
 ### Tables and Relations
 
-![Main DB]////modify(https://github.com/user-attachments/assets/55ea4e02-e9bb-4280-8eb7-51c686776c7d)
+![Main DB](https://github.com/user-attachments/assets/4bca726f-127e-4650-9b3a-a2915174710a)
 
 #### Users
 * There is an index on id which is the primary index.
