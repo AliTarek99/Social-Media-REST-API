@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  Redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
+    command: redis-server --appendonly yes
+    container_name: redis
+    networks:
+      - load-balancing
+
+networks:
+  load-balancing:
+    driver: bridge
+    name: load-balancing
+
+volumes:
+  data:
