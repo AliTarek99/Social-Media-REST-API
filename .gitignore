@@ -2,3 +2,5 @@ node_modules
 *~
 Design
 Encoding server/tmp
+.env
+/Redis/data

@@ -10,6 +10,8 @@ services:
       - PORT=5555
       - KAFKA_CLIENT_ID=Main_server1
       - JWT_SECRET=secret
+      - APP_PASS=ngrr rclx rwki xzlr
+      - EMAIL=alitarek5120@gmail.com
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -30,6 +32,8 @@ services:
       - PORT=6666
       - KAFKA_CLIENT_ID=Main_server2
       - JWT_SECRET=secret
+      - APP_PASS=ngrr rclx rwki xzlr
+      - EMAIL=alitarek5120@gmail.com
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

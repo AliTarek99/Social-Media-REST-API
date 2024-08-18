@@ -12,7 +12,7 @@ var User_metadata = require("./User_metadata");
 var User_post_rel = require("./User_post_rel");
 var Users = require("./Users");
 
-function initModels(sequelize) {
+function initModels() {
 
   Chats.belongsToMany(Users, { as: 'userId_Users', through: Chat_members, foreignKey: "id", otherKey: "userId" });
   Posts.belongsToMany(Users, { as: 'userId_Users_User_post_rels', through: User_post_rel, foreignKey: "postId", otherKey: "userId" });

@@ -8,22 +8,23 @@ const authRouter = require('./routers/authentication');
 const profileRouter = require('./routers/profiles')
 const supportRouter = require('./routers/support');
 const messageRouter = require('./routers/messaging');
+const { init } = require('./util/sockets');
 
-const server = express();
+const app = express();
 
-server.use('/auth', authRouter);
+app.use('/auth', authRouter);
 
-server.use('/message', messageRouter);
+app.use('/message', messageRouter);
 
-server.use('/profile', profileRouter);
+app.use('/profile', profileRouter);
 
-server.use('/support', supportRouter);
+app.use('/support', supportRouter);
 
-server.use('/posts', postsRouter);
+app.use('/posts', postsRouter);
 
-server.listen(process.env.PORT, async () => {
-    const db = getdb();
-    initModels();
-    await obj.initBuckets(['media']);
-    await producer.connect();
-});
+const server = app.listen(process.env.PORT);
+
+initModels();
+await obj.initBuckets(['media']);
+await producer.connect();
+init(server);

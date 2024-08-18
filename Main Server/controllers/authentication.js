@@ -87,7 +87,7 @@ exports.register = async (req, res) => {
     });
 
     // send email to the user with the verification code
-    // sendEmail(email, verification_code);
+    // TODO: sendEmail(email, verification_code);
 
     res.sendStatus(201);
 };
@@ -111,9 +111,9 @@ exports.forgotPassword = async (req, res) => {
     // create a reset password token
     const token = crypto.randomInt(100000, 999999);
 
+    // send email to the user with the reset password token
     if (user) {
-        // send email to the user with the reset password token
-        // sendEmail(email, token);
+        sendEmail('Forgot password.', `This is the reset password code ${token}`, `This is the reset password code <b>${token}</b>`, user.email);
     }
 
     res.sendStatus(200);
