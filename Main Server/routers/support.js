@@ -1,5 +1,15 @@
 const controller = require('../controllers/support');
+const { decodejwt } = require('../util/helper');
 const router = require('express').Router();
+
+router.use((req, res, next) => {
+    // decode jwt for all paths except register path
+    if(req.path == '/register') {
+        return next();
+    }
+
+    decodejwt(req, res, next);
+});
 
 router.post('/register', controller.register);
 

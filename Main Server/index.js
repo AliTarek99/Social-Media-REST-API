@@ -14,13 +14,13 @@ const app = express();
 
 app.use('/auth', authRouter);
 
-app.use('/message', messageRouter);
+app.use('/message', decodejwt, messageRouter);
 
-app.use('/profile', profileRouter);
+app.use('/profile', decodejwt, profileRouter);
 
 app.use('/support', supportRouter);
 
-app.use('/posts', postsRouter);
+app.use('/posts', decodejwt, postsRouter);
 
 const server = app.listen(process.env.PORT);
 
