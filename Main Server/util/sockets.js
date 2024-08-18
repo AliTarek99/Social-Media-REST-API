@@ -3,6 +3,7 @@ const Chat_members = require('../models/Chat_members');
 const { Op, Sequelize } = require('sequelize');
 const Followers = require('../models/Followers');
 const Messages = require('../models/Messages');
+const { decodejwt } = require('./helper');
 let socket, userToSocket = {}, socketToUser = {};
 
 const subscriber = redis.createClient();
@@ -16,25 +17,37 @@ subscriber.on('message', (channel, message) => {
 });
 
 const onConnection = socket => {
-    // get userId from the jwt token
-    // TODO: get userId from the jwt token
+    socket.on('add-user', async data => {
+        let userId;
+        try {
+            // get userId from the jwt token
+            userId = decodejwt({ Authorization: data.token }).userId;
+        } catch(err) {
+            return;
+        }
 
-    // subscribe to the userId
-    subscriber.subscribe(userId);
+        // subscribe to the userId
+        subscriber.subscribe(userId);
 
-    // store the socket and userId in the global variables
-    userToSocket[userId] = socket.id;
-    socketToUser[socket.id] = userId;
+        // store the socket and userId in the global variables
+        userToSocket[userId] = socket.id;
+        socketToUser[socket.id] = userId;
+    });
 
-    socket.on('message', async (message) => {
-        const { text, media, recepientId, chatId } = message;
+    socket.on('message', async message => {
+        const { text, media, recepientId, chatId, token } = message;
 
         if ((!text && !media) || (!recepientId && !chatId)) {
             return;
         }
 
-        // get userId from the jwt token
-        // TODO: get userId from the jwt token
+        let userId;
+        try {
+            // get userId from the jwt token
+            userId = decodejwt({ Authorization: token }).userId;
+        } catch(err) {
+            return;
+        }
 
         let promises = [];
         // check if there is a chat between the user and the recipient
@@ -84,7 +97,7 @@ const onConnection = socket => {
             }
 
             // if there is no chat, create one
-            if(!chat) {
+            if (!chat) {
                 // create a new chat
                 chat = await chat.create();
                 chatId = chat.id;
@@ -132,9 +145,18 @@ const onConnection = socket => {
         }
     });
 
+    socket.on('disconnect', async () => {
+        // unsubscribe from redis channel
+        await subscriber.unsubscribe(socketToUser[socket.id]);
+        // remove the socket from the global variables
+        delete userToSocket[socketToUser[socket.id]];
+        delete socketToUser[socket.id];
+    });
+
 }
 
 exports.init = server => {
+    // import socket io package and create socket
     socket = require('socket.io')(server, { path: '/ws/' });
 
     socket.on('connection', onConnection);

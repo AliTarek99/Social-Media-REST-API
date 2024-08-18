@@ -9,7 +9,7 @@ const chat = require('../models/Chats');
 
 exports.getConversations = async (req, res, next) => {
     // check if the user is logged in
-    if (!req.user) {
+    if (!req.userId) {
         return res.sendStatus(401);
     }
 
@@ -31,7 +31,7 @@ exports.getConversations = async (req, res, next) => {
         JOIN Users U ON U.id = Chat_members.userId
         JOIN Chats C ON C.id = Chat_members.id
         JOIN Messages M ON M.chatId = Chat_members.id
-        WHERE Chat_members.id IN (SELECT id FROM Chat_members WHERE userId = ${req.user.id}) AND M.date < :offset AND Chat_members.userId <> ${req.user.id}
+        WHERE Chat_members.id IN (SELECT id FROM Chat_members WHERE userId = ${req.userId}) AND M.date < :offset AND Chat_members.userId <> ${req.userId}
         ORDER BY M.date DESC
         LIMIT 10
     `, {
@@ -48,7 +48,7 @@ exports.getConversations = async (req, res, next) => {
 
 
 exports.getConversation = async (req, res, next) => {
-    if (!req.user) {
+    if (!req.userId) {
         return res.sendStatus(401);
     }
 
@@ -62,7 +62,7 @@ exports.getConversation = async (req, res, next) => {
         attributes: ['userId']
     });
 
-    if (!members.find(value => value.userId === req.user.id)) {
+    if (!members.find(value => value.userId === req.userId)) {
         return res.sendStatus(401);
     }
 
@@ -86,14 +86,14 @@ exports.getConversation = async (req, res, next) => {
 
 exports.getNonReceivedMessages = async (req, res, next) => {
     // check if the user is logged in
-    if (!req.user) {
+    if (!req.userId) {
         return res.sendStatus(401);
     }
 
     // get the chats the user is member of and get the messages that are not received
     const messages = await chat_members.findAll({
         where: {
-            userId: req.user.id
+            userId: req.userId
         },
         attributes: ['id'],
         include: [{
@@ -105,7 +105,7 @@ exports.getNonReceivedMessages = async (req, res, next) => {
             on: {
                 [Op.and]: [
                     sequelize.where(sequelize.col('Messages.chatId'), '=', sequelize.col('Chat_members.id')),
-                    sequelize.where(sequelize.col('Messages.senderId'), '<>', req.user.id)
+                    sequelize.where(sequelize.col('Messages.senderId'), '<>', req.userId)
                 ]
             }
         }],
