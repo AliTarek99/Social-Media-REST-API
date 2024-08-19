@@ -4,12 +4,18 @@ const router = require('express').Router();
 
 router.use((req, res, next) => {
     // decode jwt for all paths except register path
-    if(req.path == '/register') {
+    if(['/register', '/login'].includes(req.path)) {
         return next();
     }
 
-    decodejwt(req, res, next);
+    const payload = decodejwt(req, res);
+    if(payload.role != 'support') {
+        return res.sendStatus(401);
+    }
+    next();
 });
+
+router.post('/login', controller.login);
 
 router.post('/register', controller.register);
 
