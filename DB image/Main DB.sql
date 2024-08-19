@@ -9,7 +9,7 @@ CREATE TABLE Notifications(
     description TEXT NULL
 );
 ALTER TABLE
-    Notifications ADD PRIMARY KEY(recipientId, not_read, id);
+    Notifications ADD PRIMARY KEY(recipientId, id);
 
 CREATE TABLE Posts(
     id BIGINT AUTO_INCREMENT UNIQUE,
@@ -52,23 +52,29 @@ CREATE TABLE Support(
 CREATE INDEX support_email_index ON
     Support(email, password);
 
+CREATE INDEX support_verified_index ON
+    Support(verified);
+
+CREATE INDEX support_name_index ON
+    Support(name);
+
 ALTER TABLE
     Support ADD PRIMARY KEY(id);
 
 CREATE TABLE Reports(
     id INTEGER AUTO_INCREMENT UNIQUE,
-    UserId BIGINT NOT NULL,
-    SupportId INTEGER NULL,
-    Description TEXT NOT NULL,
+    userId BIGINT NOT NULL,
+    supportId INTEGER NULL,
+    description TEXT NOT NULL,
     postId BIGINT NOT NULL,
     commentId INTEGER NULL,
     assigned BOOLEAN NOT NULL DEFAULT FALSE
 );
 ALTER TABLE
-    Reports ADD PRIMARY KEY(SupportId, id);
+    Reports ADD PRIMARY KEY(supportId, id);
 
 CREATE INDEX reports_userid_postid_commentid_index ON
-    Reports(UserId, postId, commentId);
+    Reports(userId, postId, commentId);
 CREATE INDEX reports_assigned_id_index ON
     Reports(assigned, id);
 
@@ -159,6 +165,9 @@ ALTER TABLE
         id
     );
 
+CREATE INDEX comments_postId_id_index ON
+    Comments(postId, id);
+
 CREATE TABLE Users(
     id BIGINT AUTO_INCREMENT UNIQUE,
     profile_pic VARCHAR(36) NOT NULL,
@@ -172,6 +181,8 @@ CREATE TABLE Users(
 );
 ALTER TABLE
     Users ADD PRIMARY KEY(id);
+CREATE INDEX users_name_index ON
+    Users(name);
 
 ALTER TABLE
     User_post_rel ADD CONSTRAINT User_post_rel_userid_foreign FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE CASCADE;

@@ -1,6 +1,7 @@
 const controller = require('../controllers/support');
 const { decodejwt } = require('../util/helper');
 const router = require('express').Router();
+const { check } = require('express-validator');
 
 router.use((req, res, next) => {
     // decode jwt for all paths except register path
@@ -15,9 +16,19 @@ router.use((req, res, next) => {
     next();
 });
 
-router.post('/login', controller.login);
+router.post('/login', [
+        check('email').isEmail(),
+        check('password').isLength({ min: 5 })
+    ], 
+    controller.login
+);
 
-router.post('/register', controller.register);
+router.post('/register', [
+        check('email').isEmail(),
+        check('password').isLength({ min: 5 }),
+        check('name').isLength({ min: 3 })
+    ],
+    controller.register);
 
 router.put('/ban/:id', controller.banUser);
 
@@ -25,7 +36,7 @@ router.put('/suspend/:id', controller.suspendUser);
 
 router.delete('/delete-post/:id', controller.deletePost);
 
-router.delete('/delete-comment/:id', controller.deleteComment);
+router.delete('/posts/:postId/delete-comment/:commentId', controller.deleteComment);
 
 router.delete('/delete-account/:id', controller.deleteAccount);
 
@@ -46,5 +57,7 @@ router.get('/reports/unassigned', controller.unassignedReports);
 router.post('/reports/:id', controller.assignReport);
 
 router.get('/reports/:id', controller.getReport);
+
+router.get('/unapproved-users', controller.getUnapprovedUsers);
 
 module.exports = router;

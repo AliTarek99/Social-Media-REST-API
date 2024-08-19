@@ -9,6 +9,8 @@ const profileRouter = require('./routers/profiles')
 const supportRouter = require('./routers/support');
 const messageRouter = require('./routers/messaging');
 const { init } = require('./util/sockets');
+const { decodejwt } = require('./util/helper');
+
 
 const app = express();
 
@@ -25,6 +27,6 @@ app.use('/posts', decodejwt, postsRouter);
 const server = app.listen(process.env.PORT);
 
 initModels();
-await obj.initBuckets(['media']);
-await producer.connect();
+obj.initBuckets(['media']);
+producer.connect();
 init(server);

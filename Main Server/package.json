@@ -19,6 +19,7 @@
     "kafkajs": "^2.2.4",
     "minio": "^8.0.1",
     "mysql2": "^3.10.3",
+    "nodemailer": "^6.9.14",
     "redis": "^4.7.0",
     "sequelize": "^6.37.3",
     "sequelize-auto": "^0.8.8",
