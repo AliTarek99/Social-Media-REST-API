@@ -1,5 +1,6 @@
 const controller = require('../controllers/posts');
 const router = require('express').Router();
+const { check } = require('express-validator');
 
 router.post('/upload', controller.uploadPost);
 
@@ -27,7 +28,11 @@ router.post('/:id/share', controller.share);
 
 router.delete('/:id', controller.deletePost);
 
-router.post('/:id/report', controller.reportPost);
+router.post('/:id/report', [
+        check('description').isLength({min: 50, max: 500}).isAlphanumeric()
+    ], 
+    controller.reportPost
+);
 
 
 module.exports = router;

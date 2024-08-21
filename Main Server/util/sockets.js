@@ -4,6 +4,8 @@ const { Op, Sequelize } = require('sequelize');
 const Followers = require('../models/Followers');
 const Messages = require('../models/Messages');
 const { decodejwt } = require('./helper');
+const notifications = require('../models/Notifications');
+const User_metadata = require('../models/User_metadata');
 let socket, userToSocket = {}, socketToUser = {};
 
 const subscriber = redis.createClient();
@@ -12,9 +14,22 @@ const publisher = redis.createClient();
 subscriber.on('message', (channel, message) => {
     // send message to the user
     if (userToSocket[message.recipientId]) {
-        socket.to(userToSocket[message.recipientId]).emit('message', message);
+        const event = message.event;
+        delete message.event;
+        socket.to(userToSocket[message.recipientId]).emit(message.event, message);
     }
 });
+
+exports.init = server => {
+    // import socket io package and create socket
+    socket = require('socket.io')(server, { path: '/ws/' });
+
+    socket.on('connection', onConnection);
+}
+
+exports.getSocket = () => {
+    return socket;
+}
 
 const onConnection = socket => {
     socket.on('add-user', async data => {
@@ -22,7 +37,7 @@ const onConnection = socket => {
         try {
             // get userId from the jwt token
             userId = decodejwt({ Authorization: data.token }).userId;
-        } catch(err) {
+        } catch (err) {
             return;
         }
 
@@ -45,7 +60,7 @@ const onConnection = socket => {
         try {
             // get userId from the jwt token
             userId = decodejwt({ Authorization: token }).userId;
-        } catch(err) {
+        } catch (err) {
             return;
         }
 
@@ -95,11 +110,10 @@ const onConnection = socket => {
             if (!follower) {
                 message.recipientId = undefined;
             }
-
             // if there is no chat, create one
-            if (!chat) {
+            else if (!chat) {
                 // create a new chat
-                chat = await chat.create();
+                chat = await chat.create({});
                 chatId = chat.id;
 
                 // create chat members
@@ -140,6 +154,7 @@ const onConnection = socket => {
             socket.to(userToSocket[message.recipientId]).emit('message', promises[promises.length - 1]);
         }
         else {
+            message.event = 'message';
             // send message to the user
             await publisher.publish(message.recipientId, promises[promises.length - 1]);
         }
@@ -155,13 +170,47 @@ const onConnection = socket => {
 
 }
 
-exports.init = server => {
-    // import socket io package and create socket
-    socket = require('socket.io')(server, { path: '/ws/' });
 
-    socket.on('connection', onConnection);
-}
+exports.sendNotification = async (senderId, recepientId, object_type, objectId, activity_type, description) => {
+    // create a notification for object creator
+    const t = db.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED });
+    try {
+        // get the number of notifications and create the notification
+        const user_meta = await User_metadata.findOne({
+            where: {
+                id: recepientId
+            },
+            attributes: ['num_of_notifications'],
+            transaction: t,
+            lock: t.LOCK.SHARE
+        });
 
-exports.getSocket = () => {
-    return socket;
+        user_meta.num_of_notifications += 1;
+        await user_meta.save({ transaction: t });
+
+        const notification = await notifications.create({
+            id: user_meta.num_of_notifications,
+            object_type: object_type,
+            activity_type: activity_type,
+            description: description,
+            recipientId: recepientId,
+            senderId: senderId,
+            objectId: objectId
+        },
+            { transaction: t }
+        );
+
+        // notify the user if he is currently connected to the server
+        if (userToSocket[notification.recipientId])
+            socket.to(userToSocket[notification.recipientId]).emit('notification', notification);
+        else {
+            notification.event = 'notification';
+            await publisher.publish(notification.recipientId, notification);
+        }
+
+        await t.commit();
+    } catch (err) {
+        await t.rollback();
+        return res.status(500).json({ msg: 'internal server error.' });
+    }
 }

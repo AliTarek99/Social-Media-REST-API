@@ -6,7 +6,8 @@ CREATE TABLE Notifications(
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     senderId BIGINT NULL,
     not_read BOOLEAN NOT NULL DEFAULT TRUE,
-    description TEXT NULL
+    description TEXT NULL,
+    objectId BIGINT
 );
 ALTER TABLE
     Notifications ADD PRIMARY KEY(recipientId, id);
@@ -51,6 +52,9 @@ CREATE TABLE Support(
 );
 CREATE INDEX support_email_index ON
     Support(email, password);
+
+CREATE INDEX support_verified_index ON
+    Support(verified);
 
 CREATE INDEX support_name_index ON
     Support(name);

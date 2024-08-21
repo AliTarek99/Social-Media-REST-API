@@ -14,6 +14,7 @@ const { decodejwt } = require('./util/helper');
 
 const app = express();
 
+
 app.use('/auth', authRouter);
 
 app.use('/message', decodejwt, messageRouter);
@@ -23,6 +24,11 @@ app.use('/profile', decodejwt, profileRouter);
 app.use('/support', supportRouter);
 
 app.use('/posts', decodejwt, postsRouter);
+
+app.use((err, req, res, next) => {
+    console.log(err);
+    res.status(500).json({msg: 'Something went wrong.'});
+})
 
 const server = app.listen(process.env.PORT);
 

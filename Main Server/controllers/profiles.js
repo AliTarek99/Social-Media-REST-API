@@ -63,7 +63,7 @@ exports.updateAvatar = async (req, res, next) => {
         where: {
             id: req.userId
         },
-        attributes: ['avatar']
+        attributes: ['profile_pic', 'banned']
     });
 
     // check if profile exists and is not banned
@@ -71,9 +71,11 @@ exports.updateAvatar = async (req, res, next) => {
         return res.sendStatus(404);
     }
 
-    // update the user's avatar
-    profile.avatar = req.body.avatar;
-    await profile.save();
+    // TODO: write the logic to upload the avatar to the object store
+    // and update the avatar in the database
+
+    res.sendStatus(200);
+
 }
 
 // Function to handle the GET request for retrieving followers
@@ -88,7 +90,7 @@ exports.getFollowers = async (req, res, next) => {
             where: {
                 banned: false
             },
-            attributes: ['name', 'avatar', 'id'],
+            attributes: ['name', 'profile_pic', 'id'],
             on: Sequelize.where(Sequelize.col('Followers.followerId'), '=', Sequelize.col('Users.id'))
         },
         limit: 30,
@@ -114,7 +116,7 @@ exports.getFollowing = async (req, res, next) => {
             where: {
                 banned: false
             },
-            attributes: ['name', 'avatar', 'id'],
+            attributes: ['name', 'profile_pic', 'id'],
             on: Sequelize.where(Sequelize.col('Followers.userId'), '=', Sequelize.col('Users.id'))
         },
         limit: 30,
@@ -199,7 +201,7 @@ exports.getPosts = async (req, res, next) => {
                 where: {
                     banned: false
                 },
-                attributes: ['name', 'avatar'],
+                attributes: ['name', 'profile_pic'],
                 on: Sequelize.where(Sequelize.col('Posts.creatorId'), '=', Sequelize.col('Users.id'))
             },
             {
@@ -238,7 +240,7 @@ exports.getSavedPosts = async (req, res, next) => {
                 where: {
                     banned: false
                 },
-                attributes: ['name', 'avatar'],
+                attributes: ['name', 'profile_pic'],
                 on: Sequelize.where(Sequelize.col('Posts.creatorId'), '=', Sequelize.col('Users.id'))
             },
             {
@@ -316,7 +318,7 @@ exports.searchProfiles = async (req, res, next) => {
         },
         limit: 15,
         offset: req.query.offset || 0,
-        attributes: ['name', 'avatar', 'id']
+        attributes: ['name', 'profile_pic', 'id']
     });
 
     // send profiles to client
