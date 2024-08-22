@@ -16,7 +16,7 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     // check if the email exists
-    const user = await userMetadata.findone({
+    const user = await userMetadata.findOne({
         where: {
             email: email
         },
@@ -28,7 +28,7 @@ exports.login = async (req, res) => {
     });
 
     // check if the password is correct, email is verified and user is not banned
-    if (!user || await bcrypt.compare(password, user.password) || !user.email_verified || user.banned) {
+    if (!user || !(await bcrypt.compare(password, user.password)) || !user.email_verified || user.banned) {
         return res.sendStatus(400);
     }
 
