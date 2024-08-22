@@ -53,15 +53,16 @@ const onConnection = socket => {
     });
 
     socket.on('message', async message => {
-        let { text, media, recepientId, chatId, token } = message;
+        let { text, media, recepientId, chatId, token, msgNum } = message;
 
         if ((!text && !media) || (!recepientId && !chatId)) {
             return;
         }
 
+        let userId;
         try {
             // get userId from the jwt token
-            const userId = decodejwt({ Authorization: token }).userId;
+            userId = decodejwt({ Authorization: token }).userId;
             const t = db.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED });
 
             let promises = [];
@@ -171,13 +172,15 @@ const onConnection = socket => {
             if (message.chatId)
                 data.duplicate_prevention = null;
             // send the chat id to the user creating it
-            else if (userToSocket[userId]) {
-                socket.to(userToSocket[userId]).emit('chat-created', { chatId: chatId });
+            if (userToSocket[userId]) {
+                socket.to(userToSocket[userId]).emit('message-sent', { chatId: chatId, messageId: promises[promises.length - 1].id, msgNum: msgNum });
             }
             else {
                 await publisher.publish(userId, {
-                    event: 'chat-created',
-                    chatId: chatId
+                    event: 'message-sent',
+                    chatId: chatId,
+                    messageId: promises[promises.length - 1].id,
+                    msgNum: msgNum
                 });
             }
 
@@ -200,7 +203,22 @@ const onConnection = socket => {
                 await publisher.publish(message.recipientId, promises[promises.length - 1]);
             }
         } catch (err) {
-            return;
+            await t.rollback();
+            if (userToSocket[userId]) {
+                socket.to(userToSocket[userId]).emit('error', { msg: 'Something went wrong while sending message', msgNum: msgNum });
+            }
+            else {
+                try {
+                    await publisher.publish(userId, {
+                        event: 'error',
+                        msg: 'Something went wrong while sending message.',
+                        msgNum: msgNum
+                    });
+                } catch(err) {
+                    console.log(err);
+                }
+            }
+            console.log(err);
         }
     });
 
