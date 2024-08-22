@@ -7,12 +7,35 @@ You can view the diagram <a href="https://online.visual-paradigm.com/w/dpgzbxos/
 ## System Architecture
 This is the initial Design of the system and it may be modified.
 
-![image](https://github.com/user-attachments/assets/f23bc1f9-2451-43e2-96a5-5aff97700887)
+![image](https://github.com/user-attachments/assets/7981de32-4575-4c59-8c46-20cb8ce9d045)
 
-![image](https://github.com/user-attachments/assets/2226a6d8-cbe6-4b88-8447-46b12115367e)
+![image](https://github.com/user-attachments/assets/64669474-0da1-4b9b-b3fd-51910ad1e073)
 
 ![image](https://github.com/user-attachments/assets/3f7a0f50-ab69-484e-9571-be2268b8dc63)
 
+## Message Queue
+* Here I was comparing Kafka and RabbitMQ
+* For my use cases, I will use the MQ to write asynchronously to my database which needs durability and high throughput
+* Another use case is the authentication server communication with other servers.
+* I know RabbitMQ may be easier to use but it is not as durable as Kafka and durability is needed in case of database asynchronous writes
+* Kafka may be more resource intensive but it also more scalable than RabbitMQ by adding more brokers.
+
+## Load Balancing
+* Here I was comparing between Nginx and Apache server
+* I found that Nginx is better in many ways
+	* Lightweight
+	* higher performance and is suitable for handling many simultaneous connections efficiently 
+	* Simple and easy configuration
+* Nginx offers advanced features such as rate limiting, request throttling, and connection limiting, which can be crucial in mitigating DDoS attacks
+* Both of them also provide static content caching.
+
+## Pub-Sub Architecture
+* I needed to add this to scale websockets horizontally.
+* I needed something that I could publish an event to and the subscribers to the channel can listen to this event.
+* At first, I thought of using Kafka for this as it already existed in the system.
+* Using Kafka was not ideal for messaging systems because it takes time to write the logs to the disk, I know it is fast writing to disk in Kafka because it only appends to the end of the partition but not as fast as writing to memory.
+* After this I concluded that Redis is a good candidate because it is in-memory storage with different options for persistence if needed.
+* Also Redis dynamically creates and deletes channels implicitly which is more suitable for this use case.
 
 ## Database
 ### DBMS
@@ -25,16 +48,17 @@ This is the initial Design of the system and it may be modified.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/4bca726f-127e-4650-9b3a-a2915174710a)
+![Main DB](https://github.com/user-attachments/assets/db8644c8-5d39-48c7-8593-894658842862)
 
 #### Users
-* There is an index on id which is the primary index.
-* profile_pic will contain a link to the picture so that the row size does not become bigger and as a result of this, I will be able to fit more rows in the same page and hopefully get more cache hits.
+* There is an index on `id`, the primary index.
+* `profile_pic` will contain a link to the picture so that the row size does not increase. As a result, I will be able to fit more rows on the same page and hopefully get more cache hits.
+* Added an index on the `name` to search for users faster.
 
 #### User_metadata
 * There is an index on the `id` column which is the primary index and a secondary index on the `email` and it includes the `password` because it will be used in login.
 * This table was added to separate data that is not frequently used from the users table, this was added to the schema because MySQL does not support vertical partitioning.
-* This will make other queries faster because the content in a row is less and this leads to an increased number of rows in the same page which makes caching more efficient.
+* This will make other queries faster because the content in a row is less, which leads to an increased number of rows on the same page, which makes caching more efficient.
 
 #### Followers
 * Here the `followerId` and `userId` were used for the primary index so it is faster to get the followed users when fetching the timeline
@@ -69,6 +93,8 @@ This is the initial Design of the system and it may be modified.
 * This table will save the chats between users and using it with the chat members table will allow me to add group chats in the future if I need to.
 * The primary key is the `id` column for single chat retrieval
 * `last_message_date` is used as a secondary index to optimize range queries when retrieving a user's chats.
+* Added `duplicate_prevention` column which will be the sha256 hash of the 2 hashes of the userIds concatenated which will be unique to prevent creating the same chat multiple times.
+* I did not use `duplicate_prevention` as the `id` because it is a large value that will increase the size of the secondary indexes, As a result, this may affect the performance.
 
 #### Chat_members
 * I used this table instead of adding the members directly as columns in the chats table so it is easier to add group chats later
@@ -79,6 +105,8 @@ This is the initial Design of the system and it may be modified.
 #### Support
 * This is a small table which contains the accounts of support.
 * The `id` was used for the primary index and there is a secondary index on the `email` that includes the `password` as well so logging in is faster.
+* Added an index on the `name` to search for support accounts by admins faster.
+* Also added an index on the `verified` column so admins can get support accounts that are not verified without a sequential search.
 
 #### Reports
 * The (supportId, id) columns were used as a primary index because the queries on this table will be the support fetching the reports assigned to them and by choosing these columns for the primary index this table will be organized using supportId for faster range queries of this type.
@@ -90,19 +118,3 @@ This is the initial Design of the system and it may be modified.
 * The primary index is (`recipientId`, `not_read`, `id`) this will arrange the table to have unread notifications clustered for the same recipient.
 * `object_type` identifies the object that the notification is notifying about ("post", "comment", "warning", "report")
 * `activity_type` is the activity that occurred on this object ("liked", "followed", "warning", "commented",  "report reviewed")
-
-## Message Queue
-* Here I was comparing Kafka and RabbitMQ
-* For my use cases, I will use the MQ to write asynchronously to my database which needs durability and high throughput
-* Another use case is the authentication server communication with other servers.
-* I know RabbitMQ may be easier to use but it is not as durable as Kafka and durability is needed in case of database asynchronous writes
-* Kafka may be more resource intensive but it also more scalable than RabbitMQ by adding more brokers.
-
-## Load Balancing
-* Here I was comparing between Nginx and Apache server
-* I found that Nginx is better in many ways
-	* Lightweight
-	* higher performance and is suitable for handling many simultaneous connections efficiently 
-	* Simple and easy configuration
-* Nginx offers advanced features such as rate limiting, request throttling, and connection limiting, which can be crucial in mitigating DDoS attacks
-* Both of them also provide static content caching.
