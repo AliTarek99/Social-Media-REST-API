@@ -112,7 +112,8 @@ CREATE TABLE Chats(
    id BIGINT AUTO_INCREMENT UNIQUE,
    num_of_msgs INTEGER DEFAULT 0,
    last_message INTEGER,
-   last_message_date TIMESTAMP 
+   last_message_date TIMESTAMP,
+   duplicate_prevention VARCHAR(65) UNIQUE
 );
 
 ALTER TABLE
@@ -120,6 +121,9 @@ ALTER TABLE
 
 CREATE INDEX chats_last_message_date_index ON
     Chats(last_message_date);
+
+CREATE INDEX chats_duplicate_prevention_index ON
+    Chats(duplicate_prevention)
 
 CREATE TABLE Chat_members(
    id BIGINT,
