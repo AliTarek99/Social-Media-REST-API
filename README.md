@@ -48,17 +48,17 @@ This is the initial Design of the system and it may be modified.
   
 ### Tables and Relations
 
-![Main DB](https://github.com/user-attachments/assets/83847d61-bc6e-47bd-9b80-9d43a19abe03)
+![Main DB](https://github.com/user-attachments/assets/db8644c8-5d39-48c7-8593-894658842862)
 
 #### Users
-* There is an index on `id` which is the primary index.
-* `profile_pic` will contain a link to the picture so that the row size does not become bigger and as a result of this, I will be able to fit more rows in the same page and hopefully get more cache hits.
+* There is an index on `id`, the primary index.
+* `profile_pic` will contain a link to the picture so that the row size does not increase. As a result, I will be able to fit more rows on the same page and hopefully get more cache hits.
 * Added an index on the `name` to search for users faster.
 
 #### User_metadata
 * There is an index on the `id` column which is the primary index and a secondary index on the `email` and it includes the `password` because it will be used in login.
 * This table was added to separate data that is not frequently used from the users table, this was added to the schema because MySQL does not support vertical partitioning.
-* This will make other queries faster because the content in a row is less and this leads to an increased number of rows in the same page which makes caching more efficient.
+* This will make other queries faster because the content in a row is less, which leads to an increased number of rows on the same page, which makes caching more efficient.
 
 #### Followers
 * Here the `followerId` and `userId` were used for the primary index so it is faster to get the followed users when fetching the timeline
@@ -93,6 +93,8 @@ This is the initial Design of the system and it may be modified.
 * This table will save the chats between users and using it with the chat members table will allow me to add group chats in the future if I need to.
 * The primary key is the `id` column for single chat retrieval
 * `last_message_date` is used as a secondary index to optimize range queries when retrieving a user's chats.
+* Added `duplicate_prevention` column which will be the sha256 hash of the 2 hashes of the userIds concatenated which will be unique to prevent creating the same chat multiple times.
+* I did not use `duplicate_prevention` as the `id` because it is a large value that will increase the size of the secondary indexes, As a result, this may affect the performance.
 
 #### Chat_members
 * I used this table instead of adding the members directly as columns in the chats table so it is easier to add group chats later
