@@ -123,7 +123,7 @@ CREATE INDEX chats_last_message_date_index ON
     Chats(last_message_date);
 
 CREATE INDEX chats_duplicate_prevention_index ON
-    Chats(duplicate_prevention)
+    Chats(duplicate_prevention);
 
 CREATE TABLE Chat_members(
    id BIGINT,
