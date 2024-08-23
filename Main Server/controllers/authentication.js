@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const users = require('../models/Users');
 const userMetadata = require('../models/User_metadata');
 const { validationResult } = require('express-validator');
-const { sendEmail } = require('../util/helper');
+const helper = require('../util/helper');
+const crypto = require('crypto');
 
 
 exports.login = async (req, res) => {
@@ -73,14 +74,14 @@ exports.register = async (req, res) => {
     }
 
     // save user to the database
-    await users.create({
+    let user = await users.create({
         name: name,
         bio: req.body.bio,
         profile_pic: req.body.profile_pic,
     });
 
     // save meta data of the user to the database
-    const user = await userMetadata.create({
+    user = await userMetadata.create({
         id: user.id,
         email: email,
         password: hashedPassword,
@@ -88,7 +89,7 @@ exports.register = async (req, res) => {
     });
 
     // send email to the user with the verification code
-    sendEmail(
+    helper.sendEmail(
         'Email verification', 
         `This is your verification code you will not be able to use the account till you verify you email ${user.verification_code}`, 
         `This is your verification code you will not be able to use the account till you verify you email <b>${user.verification_code}</b>`,
@@ -119,7 +120,7 @@ exports.forgotPassword = async (req, res) => {
 
     // send email to the user with the reset password token
     if (user) {
-        sendEmail('Forgot password.', `This is the reset password code ${token}`, `This is the reset password code <b>${token}</b>`, user.email);
+        helper.sendEmail('Forgot password.', `This is the reset password code ${token}`, `This is the reset password code <b>${token}</b>`, user.email);
     }
 
     res.sendStatus(200);
